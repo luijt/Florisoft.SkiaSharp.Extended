@@ -47,7 +47,7 @@ public class SKFileLottieImageSource : SKLottieImageSource
 		}
 		catch (FileNotFoundException)
 		{
-			result = LoadEmbeddedResource("ResourceLib", filename);
+			result = LoadEmbeddedResource("Florisoft.Maui.Theme", filename);
 		}
 		return result;
 	}
