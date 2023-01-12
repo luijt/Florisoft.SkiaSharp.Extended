@@ -22,7 +22,6 @@ public class SKUriLottieImageSource : SKLottieImageSource
 		try
 		{
 			using var client = new HttpClient();
-
 			using var response = await client.GetAsync(Uri, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode();
 

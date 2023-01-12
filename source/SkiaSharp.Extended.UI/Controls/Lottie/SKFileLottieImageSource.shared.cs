@@ -1,4 +1,7 @@
-﻿namespace SkiaSharp.Extended.UI.Controls;
+﻿using System.Reflection;
+using Microsoft.Maui.Storage;
+
+namespace SkiaSharp.Extended.UI.Controls;
 
 public class SKFileLottieImageSource : SKLottieImageSource
 {
@@ -31,26 +34,33 @@ public class SKFileLottieImageSource : SKLottieImageSource
 		}
 		catch (Exception ex)
 		{
-#if XAMARIN_FORMS
-			Xamarin.Forms.Internals.Log.Warning(nameof(SKFileLottieImageSource), $"Unable to load Lottie animation \"{File}\": " + ex.Message);
-			return null;
-#else
 			throw new ArgumentException($"Unable to load Lottie animation \"{File}\".", ex);
-#endif
 		}
 	}
 
-	private static async Task<Stream> LoadFile(string filename)
+	private static async Task<Stream?> LoadFile(string filename)
 	{
+		Stream? result = null;
 		try
 		{
-			return await FileSystem.OpenAppPackageFileAsync(filename).ConfigureAwait(false);
+			result = await FileSystem.OpenAppPackageFileAsync(filename).ConfigureAwait(false);
 		}
-		catch (NotImplementedException)
+		catch (FileNotFoundException)
 		{
-			var root = AppContext.BaseDirectory;
-			var path = Path.Combine(root, filename);
-			return System.IO.File.OpenRead(path);
+			result = LoadEmbeddedResource("ResourceLib", filename);
 		}
+		return result;
+	}
+
+	const string RESOURCES_FOLDER = "Resources.Raw";
+	static Stream? LoadEmbeddedResource(string assemblyName, string fileName)
+	{
+		// Inladen van een assembly wordt gecached, dus eenmaal ingeladen, dan kunnen we deze weer loaden uit de cache.
+		var resource = Assembly.Load(assemblyName);
+
+		// Handigheidje om alle resources te zien die ingeladen zijn
+		// Let op!: Resources dienen als Embedded Resource gemarkeerd te worden in de assembly (en niet als MauiAsset)
+		//var names = resource.GetManifestResourceNames();
+		return resource.GetManifestResourceStream($"{assemblyName}.{RESOURCES_FOLDER}.{fileName}");
 	}
 }
